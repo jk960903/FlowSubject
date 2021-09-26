@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<head>
+    <link rel="stylesheet" href="/css/extension.css"/>
+    <meta charset="UTF-8">
+    <title>플로우 과제 파일 확장자 차단</title>
+</head>
+<body>
+    <div class="fixed-extension-area">
+        <b>고정 확장자</b>
+        <input type="checkbox" id="bat_box" value="1"><span>bat</span></input>
+        <input type="checkbox" id="cmd_box" value="2"><span>cmd</span></input>
+        <input type="checkbox" id="com_box" value="3"><span>com</span></input>
+        <input type="checkbox" id="cpl_box" value="4"><span>cpl</span></input>
+        <input type="checkbox" id="exe_box" value="5"><span>exe</span></input>
+        <input type="checkbox" id="scr_box" value="6"><span>scr</span></input>
+        <input type="checkbox" id="js_box" value="7"><span>js</span></input>
+
+    </div>
+    <br>
+    <br>
+    <div class="custom-extension-area">
+        <b>커스텀 확장자</b>
+        <input type="text" id="custom_extension_input"/>
+        <button id="custom_extension_button">추가</button>
+
+    </div>
+    <br>
+    <div class="list-area">
+        <p id="custom_extension-num" class="custom-extension-num">0/200</p>
+        <ul id="custom_extension_list" class="custom-extension-list">
+
+        </ul>
+    </div>
+</body>
+<script>
+    // 페이지 호출시 자동 실행
+    $(document).ready(function(){
+        GetFixedExtension(); //고정 확장자 정보 받아오기
+        GetCustomExtensions(); // 커스텀 확장자 정보 받아오기
+    });
+
+    //bat 체크박스 클릯 ㅣ
+    $("#bat_box").on("click",function(){
+        const value = $('input:checkbox[id="bat_box"]').val(); // option 값 받아오기 value는 id로 설정되어있음
+        if($("#bat_box").is(":checked")){ // 최크되었다면
+            $('input:checkbox[id="bat_box"]').attr("checked",true);
+            UpdateFixedExtension(value,1);//업데이트 check value 1로 넘겨주기
+        }else{ //체크 해제
+            $('input:checkbox[id="bat_box"]').attr("checked",false);
+            UpdateFixedExtension(value,0);//업데이트 check value 0로 넘겨주기
+        }
+    });
+    //cmd 옵션 체크
+    $("#cmd_box").on("click",function(){
+        const value = $('input:checkbox[id="cmd_box"]').val(); //option 값 받아오기 value는 id
+        if($("#cmd_box").is(":checked")){
+            $('input:checkbox[id="cmd_box"]').attr("checked",true);
+            UpdateFixedExtension(value,1);
+        }else{
+            $('input:checkbox[id="cmd_box"]').attr("checked",false);
+            UpdateFixedExtension(value,0);
+        }
+    });
+
+    //com option 체크시
+    $("#com_box").on("click",function(){
+        const value = $('input:checkbox[id="com_box"]').val();//option 값 받아오기 value는 id
+        if($("#com_box").is(":checked")){
+            $('input:checkbox[id="com_box"]').attr("checked",true);
+            UpdateFixedExtension(value,1);
+        }else{
+            $('input:checkbox[id="com_box"]').attr("checked",false);
+            UpdateFixedExtension(value,0);
+        }
+    });
+
+    //cpl 옵션 체크시
+    $("#cpl_box").on("click",function(){
+        const value = $('input:checkbox[id="cpl_box"]').val();//option 값 받아오기 value는 id
+        if($("#cpl_box").is(":checked")){
+            $('input:checkbox[id="cpl_box"]').attr("checked",true);
+            UpdateFixedExtension(value,1);
+        }else{
+            $('input:checkbox[id="cpl_box"]').attr("checked",false);
+            UpdateFixedExtension(value,0);
+        }
+    });
+
+    //exe 옵션 체크시
+    $("#exe_box").on("click",function(){
+        const value = $('input:checkbox[id="exe_box"]').val();//option 값 받아오기 value는 id
+        if($("#exe_box").is(":checked")){
+            $('input:checkbox[id="exe_box"]').attr("checked",true);
+            UpdateFixedExtension(value,1);
+        }else{
+            $('input:checkbox[id="exe_box"]').attr("checked",false);
+            UpdateFixedExtension(value,0);
+        }
+    });
+
+    //scr 옵션 체크시
+    $("#scr_box").on("click",function(){
+        const value = $('input:checkbox[id="scr_box"]').val();//option 값 받아오기 value는 id
+        if($("#scr_box").is(":checked")){
+            $('input:checkbox[id="scr_box"]').attr("checked",true);
+            UpdateFixedExtension(value,1);
+        }else{
+            $('input:checkbox[id="scr_box"]').attr("checked",false);
+            UpdateFixedExtension(value,0);
+        }
+    });
+
+    //js 옵션 체크시
+    $("#js_box").on("click",function(){
+        const value = $('input:checkbox[id="js_box"]').val();//option 값 받아오기 value는 id
+        if($("#js_box").is(":checked")){
+            $('input:checkbox[id="js_box"]').attr("checked",true);
+            UpdateFixedExtension(value,1);
+        }else{
+            $('input:checkbox[id="js_box"]').attr("checked",false);
+            UpdateFixedExtension(value,0);
+        }
+    });
+
+    //고정 확장자 데이터 받아오기
+    function GetFixedExtension(){
+        //서버통신 AJAX
+        $.ajax({
+            type:'GET', //요청 mehtod GET
+            url:'/api/fixed-extension/get-fixed-extension', //요청 url
+            data:{
+
+            },
+            success:function(data){
+                if(data.status!="OK"){//결과 OK라면
+                    alert("Status:"+data.status+"\n message:"+ data.resultMessage);
+                    return;
+                }
+                for(var i = 0 ; i<data.data.length; i++){
+                    var box_id=data.data[i].extensionname+"_box"; //어떤 박스인지 확인
+                    if(data.data[i].isChecked == 1){ // 받은겂이 체크된 상태라면 option을 체크상태로 변경
+                        $("#"+box_id).prop('checked',true);
+                    }else{ // 안되었다며 non check상태로 변경
+                        $("#"+box_id).prop('checked',false);
+                    }
+                }
+
+            },
+            error:function(data){ //에러 발생 서버 강제종료시 발생
+                alert("error")
+            }
+        })
+    }
+
+    //고정 확장자 체크시 ischecked update
+    function UpdateFixedExtension(index,checkValue){// index = id , checkValue= 0 or 1
+
+        //서버 통신 AJAX
+        $.ajax({
+            type:'PATCH', //요청 method PATCH
+            url:'/api/fixed-extension/update-fixed-extension', //요청 url
+            data:{//전송 데이터
+                'idx' : index,
+                'isChecked' : checkValue
+            },
+            success : function(data){//성공시
+                console.log(data);
+                alert(data.resultMessage); // alert 성공 메시지
+            },
+            error:function(data){
+                console.log(data);
+            }
+        })
+    }
+
+    //커스텀 익스텐션 Get
+    function GetCustomExtensions(){
+        $.ajax({
+            type:'GET', // request method get
+            url:'/api/custom-extension/get-custom-extension', //request url
+            data:{}, // data : none
+            success:function(data){ // 성공시
+                if(data.status=='OK'){ // 상태코드 OK
+                    document.getElementById('custom_extension-num').innerText=data.data.length+"/200"; // 현재 개수 / 총 개수 설정
+                    for(let i = 0 ; i<data.data.length; i++){ //리스트 개수만큼 append
+                        $("#custom_extension_list").append("<li id=\"custom_li_"+data.data[i].idx+"\">"+data.data[i].extensionname+"<button class='close' onclick=\"DeleteCustomExtension("+data.data[i].idx+")\">X</button></li>");
+
+                    }
+                }else{ // 오류 코드와 메시지 출력
+                    alert("Status:"+data.status+"\n message:"+ data.resultMessage);
+                }
+            },error:function(data){
+
+            }
+        });
+    }
+
+    //추카 버튼 클릭시
+    $("#custom_extension_button").on("click",function(){
+        //서버 통신 ajax
+        $.ajax({
+            type:'POST', // request method post
+            url:'/api/custom-extension/create-custom-extension', //url
+            data:{ // data : extension name
+                'extension_name' : $("#custom_extension_input").val() //input 입력값
+            },
+            success:function(data){
+                var num = $("#custom_extension_list").find("li").length; // 현재 길이 받아오기
+                document.getElementById("custom_extension-num").innerText=(num+1)+"/200"; //현재 길이보다 1 늘려주고 재설정
+                if(data.status=='OK'){ // api 성공 및 OK 커스텀 리스트에 한개 추가하고 append
+                    $("#custom_extension_list").append("<li id=\"custom_li_"+data.data.idx+"\">"+data.data.extensionname+"<button class='close' onclick=\"DeleteCustomExtension("+data.data.idx+")\">X</button></li>");
+                }else{//실패 코드와 이유 alert
+                    alert("Status:"+data.status+"\n message:"+ data.resultMessage);
+                }
+            },error:function(data){
+                alert("error");
+            }
+
+
+        });
+    });
+
+    //커스텀 확장자 삭제
+    function DeleteCustomExtension(id){
+        var deleteextension = document.getElementById("custom_li_"+id).innerText;
+
+        $.ajax({
+            type:'DELETE', //request method delete
+            url:'/api/custom-extension/delete-custom-extension', //url
+            data:{ // data : idx
+                'idx':id
+            },
+            success:function(data){
+                if(data.status=="OK"){//성공 및 OK 시
+                    alert(deleteextension+"is Deleted"); //삭제 되었음을 alert
+                    clearList();//리스트 전부 삭제
+                    GetCustomExtensions();//재정의
+                }else{
+                    alert("error code"+data.status +"\n message:"+data.resultMessage);
+                }
+
+            },error:function(data){
+                alert("error");
+            }
+        })
+    }
+    //custom List 내역 전부 삭제
+    function clearList(){
+        $("#custom_extension_list").empty();
+    }
+</script>
+</html>
